@@ -1,5 +1,4 @@
-# Predictive Coding Networks
-
+#nn
 ## The Energy-Free Predictive Coding Framework
 *Summarizing and rewriting [A tutorial on the free-energy framework for modelling perception and learning](http://dx.doi.org/10.1016/j.jmp.2015.11.003) by Rafal Bogacz (2015).*
 ### Section 1 — Introduction
@@ -16,7 +15,7 @@ The basic computations a neuron performs are:
 
 A simple organism tries to infer the size (diameter) of food based on the light intensity it observes.
 
-In this example, we consider a problem in which the value of a **single variable** $v$ (*the size of the food*) has to be inferred from a **single observation** $u$ (*the light intensity*), and $g(v) = v^2$ is a **non-linear function** that relates the average measured quantity (average *light intensity*) with the variable value (*food’s size*). Since the sensory input is *noisy*, when the size of the food is $v$, the perceived light intensity $u$ is normally distributed with mean $g(v)$  and variance $\Sigma_u$:  
+In this example, we consider a problem in which the value of a **single variable** $v$ (*the size of the food*) has to be inferred from a **single observation** $u$ (*the light intensity*), and $g(v) = v^2$ is a **non-linear function** that relates the average measured quantity (average *light intensity*) with the variable value (*food’s size*). Since the sensory input is *noisy*, when the size of the food is $v$, the perceived light intensity $u$ is normally distributed with mean $g(v)$  and variance $\Sigma_u$:
 ```math
 p(u|v) = f(u; g(v), \Sigma_u)
 ```
@@ -81,3 +80,96 @@ This method of gradient ascent is computationally much simpler than the Bayesian
 
 #### 2.3 Possible Neural Implementation
 
+Let’s denote the two terms in $(*)$ as follows:
+```math
+\begin{gathered}
+\epsilon_p = \frac{v_p-\phi}{\Sigma_p} \\
+\epsilon_u = \frac{u-g(\phi)}{\Sigma_u}
+\end{gathered}
+```
+The above terms are the prediction errors:
+- $\epsilon_u$ denotes how the interred size differs from the prior expectations.
+- $\epsilon_u$ represents how much the measured light intensity differs from the expected one give $\phi$ as the food item size.
+
+Rewriting the equation for updating $\phi$ we obtain:
+```math
+(a_0)\qquad \dot{\phi} = \epsilon_ug'(\phi)-\epsilon_p
+```
+The model parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ are assumed to be encoded in the strengths of the **synaptic connections**, while variables $\phi$, $\epsilon_p$ and $\epsilon_u$, as well as the sensory inputs, are maintained in the activity of neurons or populations of them. 
+
+We’ll consider simple **neural nodes** which change their activity proportionally to the input they receive; for example, $(a_0)$ is implemented in the model by a node receiving input equal to the right hand of the equation. 
+The nodes can compute the prediction errors with the following *dynamics*:
+```math
+\begin{gathered}
+(a_1)\qquad\dot{\epsilon_p}=\phi-v_p-\Sigma_p\epsilon_p \\
+(a_2)\qquad\dot{\epsilon_u}=u-g(\phi)-\Sigma_u\epsilon_u
+\end{gathered}
+```
+Once these equations converge, $\dot{\epsilon}=0$; setting $\dot{\epsilon}=0$ and solving these equations for $\epsilon$, we obtain the same equations denoting the two terms of $(*)$ described earlier.
+
+<img src="https://github.com/Haruno19/predictive-coding/blob/main/attachment/c550dd517b43c3b5652301253ad1a6f4.png?raw=true" width=60% align="center">  
+
+
+In this architecture, the computations are performed as follows.
+The node $\epsilon_p$ receives **excitatory input** from node $\phi$, **inhibitory input** from a **tonically active** node $1$ with strength $v_p$, and **inhibitory input** from itself with strength $\Sigma_p$, implementing $(a_1)$. The nodes $\phi$ and $\epsilon_u$ analogously implement $(a_0)$ and $(a_2)$ respectively, but the information exchange between them is affected by function $g$. 
+
+Terminology:
+- an **excitatory** input is an input that **adds** to a neuron’s activity—a *positive* term.
+- an **inhibitory** input is an input that **subtracts** from a neuron’s activity—a *negative* term.
+- a **tonically active** node is a node that has a **constant output**—a constant in the system.
+##### Breaking down the graph
+To understand what the above graph represents, and how it can be used to simulate calculations, let’s start by laying down its components.
+###### Nodes
+The above architecture contains, first of all, **nodes**. Each node can represent either a **variable** or a **constant** (*tonically active* nodes). Every **variable** in the graph is updated in each **unit of time** to a new value, by an amount (**rate of change**) defined by the equations described by the graph itself. 
+
+In the above architecture we have:
+
+| Variable Nodes | Constant Nodes |
+| -------------- | -------------- |
+| $\epsilon_p$   | $u$            |
+| $\epsilon_u$   | $1$            |
+| $\phi$         |                |
+
+###### Connections
+The **lines** connecting nodes represent the **inputs** and **outputs** of each node. The direction in which the information is flowing is determined by where the point of the line is —e.g. the connection between nodes $1$ and $\epsilon_p$ has a black dot on $\epsilon_p$’s end, meaning the information flows *from* $1$ *to* $\epsilon_p$. 
+
+There are **two types** of inputs, **excitatory** and **inhibitory**, denoted by a **arrow head** and a **black dot** respectively. The type of the input determines its **sign** in the equation described in each node, **positive** if the input is **excitatory**, and **negative** if it is **inhibitory**.
+
+Furthermore, each connection has a **weight**, denoted by the label near each line. The **weight** is a scalar value associated with the relative input in the equation of the recipient node.
+When the label is surrounded by a *box*, it signifies that  the expression, rather than being the **weight**, is the entire finale *term* of the equation. 
+
+Summarizing the connections present in the above architecture, we have:
+
+| Sender       | Recipient    | Sign | Weight     | Term                          |
+| ------------ | ------------ | ---- | ---------- | ----------------------------- |
+| $u$          | $\epsilon_u$ | $+$  | $1$        | $+1\times u$                  |
+| $\epsilon_u$ | $\epsilon_u$ | $-$  | $\Sigma_u$ | $-\Sigma_u \times \epsilon_u$ |
+| $\epsilon_u$ | $\phi$       | $+$  | \          | $+\epsilon_ug'(\phi)$         |
+| $\phi$       | $\epsilon_u$ | $-$  | \          | $-g(\phi)$                    |
+| $\phi$       | $\epsilon_p$ | $+$  | $1$        | $+1\times\phi$                |
+| $\epsilon_p$ | $\epsilon_p$ | $-$  | $\Sigma_p$ | $-\Sigma_p \times \epsilon_p$ |
+| $\epsilon_p$ | $\phi$       | $-$  | $1$        | $-1\times\epsilon_u$          |
+| $1$          | $\epsilon_p$ | $-$  | $v_p$      | $-1\times v_p$                |
+###### Interpretation and Computation
+Ultimately, we can derive the equations for the **rates of change** of each **variable node**, by summing all the terms described by their input **connections** with other nodes. 
+For example, the **rate of change** of node $\epsilon_p$ is:
+```math
+\dot{\epsilon_p}=+1\times\phi-1\times v_p-\Sigma_p\epsilon_p \\
+```
+Exactly equivalent to $(a_1)$. 
+The same is true for the rates of nodes $\phi$ and $\epsilon_u$, respectively $(a_0)$ and $(a_2)$. 
+*(Note: nodes $u$ and $1$ are **tonically active nodes**, so the value they hold doesn’t change over time, and therefore have no **rate of change**.)*
+
+To simulate the model described by this graph then, simply means to: $[1]$ initialize the variables and constants to the desired values, $[2]$ evaluate the three rates of change $\dot{\phi}$, $\dot{\epsilon_p}$ and $\dot{\epsilon_u}$ with the derived equations, and $[3]$ update the values of the relative variable nodes, $\phi$, $\epsilon_p$ and $\epsilon_u$ respectively, with Euler’s method as follows:
+```math
+\begin{gathered}
+\phi^{t+\Delta t} &= \phi^t + \Delta t \cdot \dot{\phi} \\
+\epsilon_{p}^{t+\Delta t} &= \epsilon_{p}^{t} + \Delta t \cdot \dot{\epsilon}_p \\
+\epsilon_{u}^{t+\Delta t} &= \epsilon_{u}^{t} + \Delta t \cdot \dot{\epsilon}_u
+\end{gathered}
+```
+where $\Delta t$ is an arbitrary time step (e.g. $\Delta t = 0.01$.)
+
+#### 2.4 Learning the model’s parameters
+
+Our imaginary animal might wish to refine its expectation about the typical food size and the error it makes when observing light after each stimulus. In practice, we want to update the parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ to gradually refine to better reflect reality.
