@@ -1,4 +1,3 @@
-#nn
 ## The Energy-Free Predictive Coding Framework
 *Summarizing and rewriting [A tutorial on the free-energy framework for modelling perception and learning](http://dx.doi.org/10.1016/j.jmp.2015.11.003) by Rafal Bogacz (2015).*
 ### Section 1 — Introduction
@@ -33,7 +32,7 @@ p(v) = f(v; v_p, \Sigma_p)
 
 To compute how likely different sized of $v$ are, given the observed input $u$, we could use Bayes’ theorem:
 ```math
-(⭑)\qquad p(v|u) = \frac{p(v)p(u|v)}{p(u)}.
+p(v|u) = \frac{p(v)p(u|v)}{p(u)}. \tag{⭑}
 ```
 Such Bayesian approach **integrates** the information brought by **the stimulus** with the **prior knowledge** ($p(v)$), but is challenging for a simple biological system.
 Since $g$ relating the variable we wish to infer with observations is non-linear, the *posterior distribution* $p(v|u)$ may not take a standard shape, thus requiring representing infinitely many $p(v|u)$ values for different possible $u$, rather than a few summary statistics like the *mean* and the *variance*. Furthermore, computing the *posterior* involves computing the *normalization term* $p(u)$, which in turn involves evaluating an integral, which is very challenging for a simple biological system.
@@ -66,7 +65,7 @@ To find $\phi$, we’ll use **gradient ascent**, that is, we’ll modify $\phi$ 
 
 The **derivative** of $F$ w.r.t. $\phi$ is:
 ```math
-(*)\qquad \frac{\partial{F}}{\partial{\phi}}=\frac{v_p-\phi}{\Sigma_p}+\frac{u-g(\phi)}{\Sigma_u}g'(\phi).
+\frac{\partial{F}}{\partial{\phi}}=\frac{v_p-\phi}{\Sigma_p}+\frac{u-g(\phi)}{\Sigma_u}g'(\phi). \tag{∗}
 ```
 In our example, since $g(\phi)=\phi^2$, $g'(\phi)=2\phi$.
 
@@ -82,10 +81,10 @@ This method of gradient ascent is computationally much simpler than the Bayesian
 
 Let’s denote the two terms in $(*)$ as follows:
 ```math
-\begin{gathered}
-\epsilon_p = \frac{v_p-\phi}{\Sigma_p} \\
-\epsilon_u = \frac{u-g(\phi)}{\Sigma_u}
-\end{gathered}
+\epsilon_p = \frac{v_p-\phi}{\Sigma_p} \tag{e0}
+```
+```math
+\epsilon_u = \frac{u-g(\phi)}{\Sigma_u} \tag{e1}
 ```
 The above terms are the prediction errors:
 - $\epsilon_u$ denotes how the interred size differs from the prior expectations.
@@ -93,25 +92,23 @@ The above terms are the prediction errors:
 
 Rewriting the equation for updating $\phi$ we obtain:
 ```math
-(a_0)\qquad \dot{\phi} = \epsilon_ug'(\phi)-\epsilon_p
+\dot{\phi} = \epsilon_ug'(\phi)-\epsilon_p \tag{a0}
 ```
 The model parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ are assumed to be encoded in the strengths of the **synaptic connections**, while variables $\phi$, $\epsilon_p$ and $\epsilon_u$, as well as the sensory inputs, are maintained in the activity of neurons or populations of them. 
 
 We’ll consider simple **neural nodes** which change their activity proportionally to the input they receive; for example, $(a_0)$ is implemented in the model by a node receiving input equal to the right hand of the equation. 
 The nodes can compute the prediction errors with the following *dynamics*:
 ```math
-\begin{gathered}
-(a_1)\qquad\dot{\epsilon_p}=\phi-v_p-\Sigma_p\epsilon_p \\
-(a_2)\qquad\dot{\epsilon_u}=u-g(\phi)-\Sigma_u\epsilon_u
-\end{gathered}
+\dot{\epsilon_p}=\phi-v_p-\Sigma_p\epsilon_p \tag{a1}
+```
+```math
+\dot{\epsilon_u}=u-g(\phi)-\Sigma_u\epsilon_u \tag{a2}
 ```
 Once these equations converge, $\dot{\epsilon}=0$; setting $\dot{\epsilon}=0$ and solving these equations for $\epsilon$, we obtain the same equations denoting the two terms of $(*)$ described earlier.
 
-<img src="https://github.com/Haruno19/predictive-coding/blob/main/attachment/c550dd517b43c3b5652301253ad1a6f4.png?raw=true" width=60% align="center">  
-
-
+![[PCN.fig3.png]]
 In this architecture, the computations are performed as follows.
-The node $\epsilon_p$ receives **excitatory input** from node $\phi$, **inhibitory input** from a **tonically active** node $1$ with strength $v_p$, and **inhibitory input** from itself with strength $\Sigma_p$, implementing $(a_1)$. The nodes $\phi$ and $\epsilon_u$ analogously implement $(a_0)$ and $(a_2)$ respectively, but the information exchange between them is affected by function $g$. 
+The node $\epsilon_p$ receives **excitatory input** from node $\phi$, **inhibitory input** from a **tonically active** node $1$ with strength $v_p$, and **inhibitory input** from itself with strength $\Sigma_p$, implementing $(\text{a1})$. The nodes $\phi$ and $\epsilon_u$ analogously implement $(\text{a0})$ and $(\text{a2})$ respectively, but the information exchange between them is affected by function $g$. 
 
 Terminology:
 - an **excitatory** input is an input that **adds** to a neuron’s activity—a *positive* term.
@@ -172,4 +169,43 @@ where $\Delta t$ is an arbitrary time step (e.g. $\Delta t = 0.01$.)
 
 #### 2.4 Learning the model’s parameters
 
-Our imaginary animal might wish to refine its expectation about the typical food size and the error it makes when observing light after each stimulus. In practice, we want to update the parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ to gradually refine to better reflect reality.
+Our imaginary animal might wish to refine its expectation about the typical food size and the error it makes when observing light after each stimulus. In practice, we want to update the parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ to gradually refine to better reflect reality. That is, to choose the parameters for which the perceived light intensities $u$ are **least surprising**: the parameters that maximize $p(u)$. 
+
+Maximizing $p(u)$ directly however, would involve working with a complicated integral. It’s simpler to maximize the *joint probability* $p(u,\phi)$ instead, since $p(u,\phi)=p(\phi)p(u|\phi)$, therefore $\ln{p(u,\phi)}=F$.
+
+The intuition is, maximizing $p(u)$ would mean to integrate (and thus “average”) the following:
+```math
+p(u) = \int p(u, \phi) \, d\phi = \int p(u|\phi) p(\phi) \, d\phi
+```
+over all possible values $\phi$ can assume , which is computationally very intricate especially for a biological system. Instead, we select our specific inferred **best** guess $\hat\phi$ as maximize the joint probability $p(u,\hat\phi) = p(u|\phi)p(\phi)$ with respect to $\hat\phi$.
+
+After inferring the most likely value of $\phi$: $\hat\phi$, given $u$ as the light intensity input and the current model parameters, we want to tune our parameters in order to maximize the probability density $p(u, \hat\phi)$. 
+Basically, the animal asks itself: 
+> “Given my best guess of $\phi$, how likely is it that my internal parameters would expect its light intensity to be the measured one, $u$?”.
+
+Intuitively, one might think that, since $\hat\phi$ was guessed on the basis of $u$, this probability should be very high; however, given the inaccuracies in the model parameters, it might *not* be, and out goal is to adjust the parameters in order for $p(u,\hat\phi) = p(u|\phi)p(\phi)$ to be maximum. 
+
+In the same way we adjusted our guess of $\phi$ proportionally to the gradient of $F$, the model parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ can also be optimized by adjusting them proportionally to the gradient of $F$.
+In particular, we need the partial derivatives of $F$ over each one of them:
+```math
+\begin{gathered}
+\dot v_p = \frac{\partial{F}}{\partial{v_p}}= \frac{\phi-v_p}{\Sigma_p}\\
+\dot\Sigma_p =\frac{\partial{F}}{\partial{\Sigma_p}}= \frac{1}{2}\bigg( \frac{(\phi-v_p)^2}{\Sigma_p^2}-\frac{1}{\Sigma_p}\bigg)\\
+\dot\Sigma_u =\frac{\partial{F}}{\partial{\Sigma_u}}= \frac{1}{2}\bigg( \frac{(u-g(\phi))^2}{\Sigma_u^2}-\frac{1}{\Sigma_u}\bigg)
+\end{gathered}
+```
+
+Although the environment is **constantly variable** —food items have all different sizes, so there’s no single *ground truth* the model could possibly converge to— it’s nevertheless useful to consider the values of the “*ideal*” parameters, for which the relative **rates of change** are equal to $0$. 
+
+For example, the expected rate of change for $v_p$ is $0$ when $\langle\frac{\phi-v_p}{\Sigma_p}\rangle = 0$ (where $\langle\rangle$ denotes the *average* over the many inferred values of $\phi$). This will happen if $v_p  \langle\phi\rangle$, i.e. when $v_p$ —the animal’s **prior knowledge** on the average food size— is indeed equal to the average expected value of $\phi$. 
+
+Analogously, the expected rate of change for $\Sigma_p$ is $0$ when $\Sigma_p=\langle(\phi-v_p)^2\rangle$, thus when the variance of the average food size based on the animal’s prior knowledge $\Sigma_p$ is indeed equal to the average variance of $\phi$. An analogous analysys can be done for $\Sigma_u$. 
+
+The equations for the rates of change simply significantly when rewritten in terms of the **prediction errors** $(\text{e0})$ and $(\text{e1})$ as follows:
+```math
+\begin{gathered}
+\dot v_p = \epsilon_p \\
+\dot\Sigma_p = \frac{1}{2}(\epsilon_p^2-\Sigma_p^{-1})\\
+\dot\Sigma_u = \frac{1}{2}(\epsilon_u^2-\Sigma_u^{-1})\\
+\end{gathered}
+```
