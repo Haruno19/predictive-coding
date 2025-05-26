@@ -104,9 +104,10 @@ The nodes can compute the prediction errors with the following *dynamics*:
 ```math
 \dot{\epsilon_u}=u-g(\phi)-\Sigma_u\epsilon_u \tag{a2}
 ```
-Once these equations converge, $\dot{\epsilon}=0$; setting $\dot{\epsilon}=0$ and solving these equations for $\epsilon$, we obtain the same equations denoting the two terms of $(*)$ described earlier.
+Once these equations converge, $\dot{\epsilon}=0$; setting $\dot{\epsilon}=0$ and solving these equations for $\epsilon$, we obtain the same equations denoting the two terms of $(*)$ described earlier.  
 
-<img src="" width=33%>
+<img src="https://github.com/Haruno19/predictive-coding/blob/main/Attachments/PCN.fig3.png" width="60%">  
+  
 In this architecture, the computations are performed as follows.
 The node $\epsilon_p$ receives **excitatory input** from node $\phi$, **inhibitory input** from a **tonically active** node $1$ with strength $v_p$, and **inhibitory input** from itself with strength $\Sigma_p$, implementing $(\text{a1})$. The nodes $\phi$ and $\epsilon_u$ analogously implement $(\text{a0})$ and $(\text{a2})$ respectively, but the information exchange between them is affected by function $g$. 
 
@@ -232,8 +233,9 @@ Following this change in the model, the equations $(\text{a0})$, $(\text{a1})$ a
 \dot{\epsilon_u}=u-\theta\phi-\Sigma_u\epsilon_u 
 \end{gathered}
 ```
-This allows to further simplify the graph representing our model:
-<img src="" width=33%>
+This allows to further simplify the graph representing our model:  
+<img src="https://github.com/Haruno19/predictive-coding/blob/main/Attachments/PCN.fig4a.png?raw=true" width="60%">  
+
 The **excitatory** and **inhibitory** connections between $\epsilon_u$ and $\phi$ are significantly simplified, and can now be represented with a simple label representing the synaptic weight. In fact, node $\phi$ receives excitatory input $\theta\times\epsilon_u$, and $\epsilon_u$ receives inhibitory input $\theta\times\phi$.
 
 After rewriting $F$ with the new definition of $g$, we can also derive the **rate of change** of $\theta$ by finding the gradient of $F$ over $\theta$:
@@ -256,9 +258,10 @@ As the first case, the equations $(\text{a0})$, $(\text{a1})$ and $(\text{a2})$ 
 \dot{\epsilon_u}=u-\theta h(\phi)-\Sigma_u\epsilon_u 
 \end{gathered}
 ```
-Accordingly, the graph representation of the model changes as follows:
+Accordingly, the graph representation of the model changes as follows:  
 
-<img src="" width=33%>
+<img src="https://github.com/Haruno19/predictive-coding/blob/main/Attachments/PCN.fig4b.png?raw=true" width="60%">  
+
 In this new neural implementation, the activities sent between nodes $\epsilon_u$ and $\phi$ are subject to nonlinear transformations, $h(\phi)$ and $h'(phi)$. 
 A possible actual implementation of this mechanism could be achieved by adding an **additional node**, for example, between $\phi$ and $\epsilon_u$, that takes excitatory input from $\phi$, transforms it via a nonlinear transformation $h$, and then sends its output to node $\epsilon_u$ with a weight $\theta$. 
 Another possible solution would be, for example, implementing the nonlinear transformation $h'$ within node $\phi$, by making it react to its input differentially depending on its level of activity. 
