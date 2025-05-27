@@ -391,7 +391,7 @@ It is useful to recall that we multiply —effectively **weight**— these error
 
 Furthermore, it’s useful to recall that the function $g(\bar\phi,{\bf\Theta})$ maps the inferred variable $\bar\phi$ to its *predicted* sensory data $\hat{\bar u}$; in other words, it’s the model’s prediction of what sensory data *should look like* if the hidden variable has value equal to $\bar\phi$. 
 
-With the **prediction errors** now defined as $(E0)$ and $(E1)$, we can define the **rate of change** for $\bar\phi$ as follows:
+With the **prediction errors** now defined as $(\text{E0})$ and $(\text{E1})$, we can define the **rate of change** for $\bar\phi$ as follows:
 ```math
 \dot{\bar \phi}=-\bar\epsilon_p+\frac{\partial g(\bar\phi,{\bf\Theta})^T}{\partial\bar\phi}\bar\epsilon_u. \tag{A0} 
 ```
