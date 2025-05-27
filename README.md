@@ -32,7 +32,7 @@ p(v) = f(v; v_p, \Sigma_p)
 
 To compute how likely different sized of $v$ are, given the observed input $u$, we could use Bayes’ theorem:
 ```math
-p(v\mid u) = \frac{p(v)p(u\mid v)}{p(u)}. \tag{⭑}
+p(v\mid u) = \frac{p(v)p(u\mid v)}{p(u)}. \tag{1}
 ```
 Such Bayesian approach **integrates** the information brought by **the stimulus** with the **prior knowledge** ($p(v)$), but is challenging for a simple biological system.
 Since $g$ relating the variable we wish to infer with observations is non-linear, the *posterior distribution* $p(v\mid u)$ may not take a standard shape, thus requiring representing infinitely many $p(v\mid u)$ values for different possible $u$, rather than a few summary statistics like the *mean* and the *variance*. Furthermore, computing the *posterior* involves computing the *normalization term* $p(u)$, which in turn involves evaluating an integral, which is very challenging for a simple biological system.
@@ -41,12 +41,12 @@ Since $g$ relating the variable we wish to infer with observations is non-linear
 
 Instead of finding the whole *posterior distribution* $p(v\mid u)$, we’ll try to find the **most likely** value of $v$ that **maximizes** $p(v\mid u)$, denoted by $\phi$. In short, our goal is to find the value $\phi$ that maximizes $p(v\mid u)$, meaning the value $\phi$ such that $p(\phi\mid u)$ is the largest $p(v\mid u)$ between all the values of $v$.
 
-According to $(⭑)$,  $p(\phi\mid u)$ depends on a **ratio** of two quantities, but the **denominator** $p(u)$ **does not depend** on $\phi$. Thus, the value of $\phi$ that maximizes $p(\phi\mid u)$ is the same that maximizes the **numerator** of $(⭑)$. 
+According to $(1)$,  $p(\phi\mid u)$ depends on a **ratio** of two quantities, but the **denominator** $p(u)$ **does not depend** on $\phi$. Thus, the value of $\phi$ that maximizes $p(\phi\mid u)$ is the same that maximizes the **numerator** of $(1)$. 
 We’ll call $F$ the **logarithm** of the numerator:
 ```math
 F = \ln{p(\phi)}+\ln{p(u\mid \phi)}
 ```
-Maximizing $F$ is the same as maximizing the numerator or $(⭑)$, since $\ln$ is a **monotonic** function, and its easier since the expressions for $p(\phi)$ and $p(u\mid \phi)$ involve exponentiation. 
+Maximizing $F$ is the same as maximizing the numerator or $(1)$, since $\ln$ is a **monotonic** function, and its easier since the expressions for $p(\phi)$ and $p(u\mid \phi)$ involve exponentiation. 
 By substituting the previous equations into $F$ and expanding it, we can rewrite it as follows:
 ```math
 \begin{gathered}
@@ -65,7 +65,7 @@ To find $\phi$, we’ll use **gradient ascent**, that is, we’ll modify $\phi$ 
 
 The **derivative** of $F$ w.r.t. $\phi$ is:
 ```math
-\frac{\partial{F}}{\partial{\phi}}=\frac{v_p-\phi}{\Sigma_p}+\frac{u-g(\phi)}{\Sigma_u}g'(\phi). \tag{∗}
+\frac{\partial{F}}{\partial{\phi}}=\frac{v_p-\phi}{\Sigma_p}+\frac{u-g(\phi)}{\Sigma_u}g'(\phi). \tag{2}
 ```
 In our example, since $g(\phi)=\phi^2$, $g'(\phi)=2\phi$.
 
@@ -73,13 +73,13 @@ To find our best guess $\phi$ for $v$, we can simply change $\phi$ in proportion
 ```math
 \dot{\phi}=\frac{\partial{F}}{\partial{\phi}}.
 ```
-$\dot{\phi}$ is the **rate of change** of $\phi$ over time. The first term of $(*)$ moves $\phi$ in the direction of the mean of $p(v)$ (the *prior*), and the second term moves it according to the sensory stimulus; both terms are **weighted** by the **reliabilities** of the prior and the sensory input respectively. The **variance**, respectively $\Sigma_p$ and $\Sigma_u$ for the prior knowledge and the sensory stimulus, represent the uncertainty of the respective data, thus the **inverse of the variance** represents its precision, or *reliability*, and acts as a **weight** for each respective term in the equation $(*)$. 
+$\dot{\phi}$ is the **rate of change** of $\phi$ over time. The first term of $(2)$ moves $\phi$ in the direction of the mean of $p(v)$ (the *prior*), and the second term moves it according to the sensory stimulus; both terms are **weighted** by the **reliabilities** of the prior and the sensory input respectively. The **variance**, respectively $\Sigma_p$ and $\Sigma_u$ for the prior knowledge and the sensory stimulus, represent the uncertainty of the respective data, thus the **inverse of the variance** represents its precision, or *reliability*, and acts as a **weight** for each respective term in the equation $(2)$. 
 
 This method of gradient ascent is computationally much simpler than the Bayesian Inference, and quickly converges to the desired value.  
 
 #### 2.3 Possible Neural Implementation
 
-Let’s denote the two terms in $(*)$ as follows:
+Let’s denote the two terms in $(2)$ as follows:
 ```math
 \epsilon_p = \frac{v_p-\phi}{\Sigma_p} \tag{e0}
 ```
@@ -104,7 +104,7 @@ The nodes can compute the prediction errors with the following *dynamics*:
 ```math
 \dot{\epsilon_u}=u-g(\phi)-\Sigma_u\epsilon_u \tag{a2}
 ```
-Once these equations converge, $\dot{\epsilon}=0$; setting $\dot{\epsilon}=0$ and solving these equations for $\epsilon$, we obtain the same equations denoting the two terms of $(*)$ described earlier.  
+Once these equations converge, $\dot{\epsilon}=0$; setting $\dot{\epsilon}=0$ and solving these equations for $\epsilon$, we obtain the same equations denoting the two terms of $(2)$ described earlier.  
 
 <img src="https://github.com/Haruno19/predictive-coding/blob/main/Attachments/PCN.fig3.png" width="60%">  
   
@@ -306,10 +306,92 @@ Then, since $p(u)$ is a constant —not a function of $v$— it can be brought o
 ```
 The integral in the last line of the above equation is called **free-energy**. We will denote its **negative** by $F$, since we’ll show that the negative free energy is equal to the function $F$ we defined and used in Section 2. 
 ```math
-F = \int q(v) \ln{\frac{p(u,v)}{q(v)}} dv \tag{✦}
+F = \int q(v) \ln{\frac{p(u,v)}{q(v)}} dv \tag{3}
 ```
 We note that the **negative free-energy** $F$ is related to the Kullback-Leibler divergence in the following way:
 ```math
 KL(q(v),p(v\mid u)) = -F-\ln{p(u)}.
 ```
 $\ln{p(u)}$ does not depend on $\phi$, the parameter describing $q(v)$, so the value $\phi$ that **maximizes** $F$ is the **same value** that **minimizes** the distance between $q(v)$ and $p(v\mid u)$. 
+
+Assuming $q(v) = \delta(v-\phi)$ is a delta distribution (which has a property that for any function $h(x)$, $\int \delta(x-\phi)h(x)=h(\phi)$), we can further simplify the negative free-energy as follows:
+```math
+\begin{gathered}
+F = \int \delta(v-\phi) \ln{\frac{p(u,v)}{\delta(v-\phi)}} dv \\
+= \int \delta(v-\phi) \ln{p(u,v)}dv - \int \delta(v-\phi)\ln{\delta(v-\phi)}dv \\
+= \ln{p(u,\phi)}-\ln{\delta(\phi-\phi)} \\
+= \ln{p(u,\phi)}-\ln{\delta(0)} \\
+= \ln{p(u, \phi)} + C_1
+\end{gathered}
+```
+Using $p(u,\phi) = p(\phi)p(u\mid\phi)$ (and ignoring the constant term $C_1$), we obtain the same expression for $F$ introduced in the previous section.
+
+In Section 2.4 we discussed how we wish to find the parameters of the model for which the sensory observation $u$ is **least surprising** —in other words, those which **maximize** $p(u)$. According to $(3)$, $p(u)$ is related to the negative free energy $F$ in the following way:
+```math
+\ln{p(u)}=F+KL(q(v),p(v\mid u))
+```
+Since the Kullback-Leibler divergence is non-negative, $F$ sets a **lower bound** on $\ln{p(u)}$. So, by maximizing $F$, we can both find an approximate distribution $q(v)$, and optimize the model parameters.
+
+### Section 4 — Scaling up the model of perception
+
+#### 4.1 Increasing the dimension of sensory input
+
+As the **dimensionality** of the inputs and features **increases**, the nodes’ dynamics and the synaptic plasticity rules remain the same as described in the previous sections, just generalized to multiple dimensions.
+
+With the necessary introduction of matrices and vectors, to clarify the notation, we’ll denote single numbers or variables in *italic* ($x$), column vectors with bars ($\bar x$), and matrices in **bold** ($\bf x$). 
+
+We assume the animal has observed sensory input $\bar u$ and estimates the most likely values $\bar\phi$ for the variables $\bar v$. We also assume it has a prior expectation that the variables $\bar v$ come from a multivariate normal distribution with mean $\bar v_p$ and covariance $\bf  \Sigma_p$, i.e. $p(\bar v) = f(\bar v; v_p, {\bf \Sigma_p})$ where:
+```math
+f(\bar x; \bar \mu, {\bf \Sigma}) = \frac{1}{\sqrt{(2 \pi)^N |{\bf\Sigma}|}}\exp\bigg(-\frac{1}{2}(\bar x-\bar\mu)^T{\bf\Sigma}^{-1}(\bar x-\bar\mu)\bigg).
+```
+where $N$ is the length of vector $\bar x$, and $|{\bf \Sigma}|$ is the determinant of matrix $\bf\Sigma$.
+
+The probability of observing sensory input $\bar u$ given the variables $\bar v$ is given by:
+```math
+p(\bar u\mid\bar v) = f(\bar u; g(\bar v, {\bf\Theta}),{\bf\Sigma_u})
+```
+where $\bf\Theta$ is a matrix containing the parameters of the generalized function $g(\bar v,{\bf\Theta})={\bf\Theta}h(\bar v)$, where each element $i$ of $h(\bar v)$ depends on $v_i$. 
+
+The negative free-energy $F$ can now be rewritten as follows:
+```math
+\begin{gathered}
+F = \ln{p(\bar\phi)}+\ln{p(\bar u\mid\bar\phi)} \\
+= \frac{1}{2}(-\ln|{\bf\Sigma_p}|-(\bar\phi-\bar v_p)^T{\bf\Sigma_p^{-1}}(\bar\phi-\bar v_p) \\
+- \ln{|{\bf\Sigma_u}|}-(\bar u-g(\bar\phi,{\bf\Theta}))^T{\bf\Sigma_u^{-1}}(\bar u-g(\bar\phi,{\bf\Theta}))) + C
+\end{gathered}
+```
+To calculate the vector of most likely values $\bar\phi$, we will calculate the gradient of $F$ w.r.t. $\bar\phi$ —basically the vector of the derivatives $\frac{\partial F}{\partial\phi_i}$ for $i=1$ to $N$)— denoted as $\frac{\partial F}{\partial\bar\phi}$. 
+To perform such computation, we can make use of the rules for computing derivatives with vectors and **symmetric** matrices, summarized in the table below:
+
+| Organic rule                                                                                                                | Generalization for matrices                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| $\frac{\partial ax^2}{\partial x}=2ax$                                                                                      | $\frac{\partial \bar x^T{\bf A}\bar x}{\partial \bar x}=2{\bf A}\bar x$                                                                                                |
+| if $z = f(y)$ and $y=g(x)$, then $\frac{\partial z}{\partial x}=\frac{\partial y}{\partial x}\frac{\partial z}{\partial y}$ | if $z = f(\bar y)$ and $\bar y=g(\bar x)$, then $\frac{\partial z}{\partial\bar x}=\big(\frac{\partial\bar y}{\partial\bar x}\big)^T\frac{\partial z}{\partial\bar y}$ |
+| $\frac{\partial \ln{a}}{\partial a}=\frac{1}{a}$                                                                            | $\frac{\partial \ln{\mid{\bf A}\mid}}{\partial {\bf A}}={\bf A}^{-1}$                                                                                                  |
+| $\frac{\partial \frac{x^2}{a}}{\partial a}=-\frac{ x^2}{a^2}$                                                               | $\frac{\partial \bar x^T {\bf A}\bar x}{\partial {\bf A}}= -({\bf A}^{-1}\bar x)({\bf A}^{-1}\bar x)^T$                                                                |
+  
+Since $\bf\Sigma$ are **covariance** matrices, they are **symmetric**, so we can apply these rules to compute the gradient of the negative free-energy $F$ w.r.t. $\bar\phi$. The result is as follows:
+```math
+\frac{\partial F}{\partial\bar\phi}=-{\bf\Sigma_p^{-1}}(\bar\phi-\bar v_p)+\frac{\partial g(\bar\phi,{\bf\Theta})^T}{\partial\bar\phi}{\bf\Sigma_u^{-1}}(\bar u - g(\bar\phi,{\bf\Theta})). \tag{4}
+```
+
+Analogously to $(2)$, the two terms of $(4)$ are generalizations of the **prediction errors**:
+```math
+\bar\epsilon_p={\bf\Sigma_p^{-1}}(\bar\phi-\bar v_p) \tag{E0}
+```
+```math
+\bar\epsilon_u={\bf\Sigma_u^{-1}}(\bar u- g(\bar\phi,{\bf\Theta})) \tag{E1}
+```
+
+To briefly recap what those variables mean *semantically*:
+- $\bar\epsilon_p$ is the **prior prediction error** —how much the *inferred variable* $\bar\phi$ deviates from the *prior knowledge* $\bar v_p$, weighted by how confident we are in our prior knowledge.
+- $\bar\epsilon_u$ is the **sensory prediction error** —the difference between the *actual* sensory input $\bar u$ and the *predicted* sensory input $g(\bar\phi,{\bf\Theta})$, weighted by confident we are in the measurement.
+
+It is useful to recall that we multiply —effectively **weight**— these errors by the **inverse covariance matrices** ${\bf\Sigma^{-1}}$ rather than the covariance matrices ${\bf\Sigma}$ themselves since the latter are a measure of **uncertainty**, and we want to weight our errors with a measure of **confidence** instead. The inverse covariance matrix is in fact also called the **precision matrix**. 
+
+Furthermore, it’s useful to recall that the function $g(\bar\phi,{\bf\Theta})$ maps the inferred variable $\bar\phi$ to its *predicted* sensory data $\hat{\bar u}$; in other words, it’s the model’s prediction of what sensory data *should look like* if the hidden variable has value equal to $\bar\phi$. 
+
+With the **prediction errors** now defined as $(E0)$ and $(E1)$, we can define the **rate of change** for $\bar\phi$ as follows:
+```math
+\dot{\bar \phi}=-\bar\epsilon_p+\frac{\partial g(\bar\phi,{\bf\Theta})^T}{\partial\bar\phi}\bar\epsilon_u. \tag{A0} 
+```
