@@ -268,7 +268,7 @@ Another possible solution would be, for example, implementing the nonlinear tran
 
 Analogously to the previous case, we can derive the **rate of change** of $\theta$ calculating the gradient of $F$ over $\theta$, resulting in:
 ```math
-dot\theta = \frac{\partial F}{\partial\theta} = \epsilon_uh(\phi)
+\dot\theta = \frac{\partial F}{\partial\theta} = \epsilon_uh(\phi) \tag(b3)
 ```
 This rule too is **Hebbian** for the top connection between $\epsilon_u$ and $h(\phi)$. 
 As for the bottom connection between nodes $\phi$ and $\epsilon_u$, it would be interesting to investigate how the rule could be implemented. Anyhow, this connection too satisfies the constraint of **local plasticity**, since $h(\phi)$ is fully determined by $\phi$. 
