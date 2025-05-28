@@ -395,3 +395,105 @@ With the **prediction errors** now defined as $(\text{E0})$ and $(\text{E1})$, w
 ```math
 \dot{\bar \phi}=-\bar\epsilon_p+\frac{\partial g(\bar\phi,{\bf\Theta})^T}{\partial\bar\phi}\bar\epsilon_u. \tag{A0} 
 ```
+The partial derivative $\frac{\partial g(\bar\phi,{\bf\Theta})}{\partial\bar\phi}$ is an $M\times N$ **matrix** where $M$ is the number of (predicted) **sensory inputs** and $N$ is the number of **features** the model is trying to infer. Each $(j,i)$ entry in this matrix is the derivative of the $j$-th element of vector $g(\bar\phi,{\bf\Theta})$ (i.e. the $j$-th predicted sensory input) over $\bar\phi_i$, representing how much a small change in the inferred variable $\bar\phi_i$ would change the predicted sensory input $\hat{\bar u}_j$ considering the current model parameters $\bf\Theta$. 
+
+It’s useful to consider a simple example where $M=N=2$:
+```math
+g(\bar\phi,{\bf\Theta}) = {\bf\Theta}h(\bar\phi)=
+\begin{bmatrix}
+\theta_{1,1} & \theta_{1,2} \\
+\theta_{2,1} & \theta_{2,2} \\
+\end{bmatrix}
+\begin{bmatrix}
+h(\phi_1) \\
+h(\phi_2) 
+\end{bmatrix}
+= 
+\begin{bmatrix}
+\theta_{1,1}h(\phi_1)+\theta_{1,2}h(\phi_2) \\
+\theta_{2,1}h(\phi_1)+\theta_{2,2}h(\phi_2) \\
+\end{bmatrix}
+```
+The corresponding partial derivative matrix $\frac{\partial g(\bar\phi,{\bf\Theta})}{\partial\bar\phi}$ is:
+```math
+\frac{\partial g(\bar\phi,{\bf\Theta})}{\partial\bar\phi} = 
+\begin{bmatrix}
+\theta_{1,1}h'(\phi_1) & \theta_{1,2}h'(\phi_2) \\
+\theta_{2,1}h'(\phi_1) & \theta_{2,2}h'(\phi_2) 
+\end{bmatrix}
+```
+
+The update rate for $\bar\phi$ can now be rewritten as:
+```math
+\dot{\bar \phi}=-\bar\epsilon_p+h'(\bar\phi)\times{\bf\Theta}^T\bar\epsilon_u \tag{A0}
+```
+where the operator $\times$ denotes an **element by element** multiplication.
+The term $h'(\bar\phi)\times{\bf\Theta}^T\bar\epsilon_u$ is a vector whose $i$-th element is a product of $h'(\phi_1)$ and the $i$-th element of the ${\bf\Theta}^T\bar\epsilon_u$ vector. 
+In our $2\times2$ example:
+```math
+{\bf\Theta}^T \bar\epsilon_u = 
+\begin{bmatrix} 
+\theta_{1,1} & \theta_{2,1} \\ 
+\theta_{1,2} & \theta_{2,2} 
+\end{bmatrix} 
+\begin{bmatrix} 
+\epsilon_{u1} \\ 
+\epsilon_{u2} 
+\end{bmatrix} = 
+\begin{bmatrix} 
+\theta_{1,1} \epsilon_{u1} + \theta_{2,1} \epsilon_{u2} \\ 
+\theta_{1,2} \epsilon_{u1} + \theta_{2,2} \epsilon_{u2} 
+\end{bmatrix}
+```
+```math
+\begin{gathered}
+h'(\bar\phi)\times{\bf\Theta}^T\bar\epsilon_u = 
+\begin{bmatrix}
+h(\phi_1) \\
+h(\phi_2) 
+\end{bmatrix}
+\times
+\begin{bmatrix} 
+\theta_{1,1} \epsilon_{u1} + \theta_{2,1} \epsilon_{u2} \\ 
+\theta_{1,2} \epsilon_{u1} + \theta_{2,2} \epsilon_{u2} 
+\end{bmatrix} \\ =
+\begin{bmatrix}
+h’(\phi_1) (\theta_{1,1} \epsilon_{u1} + \theta_{2,1} \epsilon_{u2}) \\
+h’(\phi_2) (\theta_{1,2} \epsilon_{u1} + \theta_{2,2} \epsilon_{u2}) 
+\end{bmatrix}
+\end{gathered}
+```
+
+Then, the nodes can compute the **prediction errors** with the following *dynamics*:
+```math
+\dot{\bar\epsilon_p} = \bar\phi-\bar v_p-{\bf\Sigma_p}\bar\epsilon_p \tag{A1}
+```
+```math
+\dot{\bar\epsilon_u} = \bar u-{\bf\Theta}h(\bar\phi)-{\bf\Sigma_u}\bar\epsilon_u \tag{A2}
+```
+
+<img src="https://github.com/Haruno19/predictive-coding/blob/main/Attachments/PCN.fig5.png" width="60%">  
+This graph illustrate how the architecture of the model scales up with more than one input and one hidden variable. 
+Specifically, in this instance we consider a model with $M=2$ sensory inputs $\bar u = [u_1, u_2]$ and $N=2$ hidden features $\bar\phi = [\phi_1, \phi_2]$.
+In order to clarify the nodes’ hierarchy, nodes on the same “*level*” (and their *outgoing* connections) are shown in the same color.  
+
+Analogously to what we did in Section 2.4, we can also find the rules to **update the model parameters** encoded in the synaptic connections generalized to **higher dimensions**:
+```math
+\dot{\bar v_p} = \frac{\partial{F}}{\partial{\bar v_p}}= \bar\epsilon_p \tag{B0}
+```
+```math
+\dot{\bf\Sigma_p} =\frac{\partial{F}}{\partial{\bf\Sigma_p}}= \frac{1}{2}(\bar\epsilon_p \bar\epsilon_p^T-{\bf\Sigma_p^{-1}}) \tag{B1}
+```
+```math
+\dot{\bf\Sigma_u} =\frac{\partial{F}}{\partial{\bf\Sigma_u}}= \frac{1}{2}(\bar\epsilon_u \bar\epsilon_u^T-{\bf\Sigma_u^{-1}}) \tag{B2}
+```
+Lastly, the update rate for the parameters $\bf\Theta$ is defined as follows:
+```math
+\dot{\bf\Theta} = \frac{\partial F}{\partial{\bf\Theta}} = \bar\epsilon_uh(\bar\phi)^T \tag{B3}
+```
+
+The above rules, $(\text{B0})$ to  $(\text{B3})$, exactly like their equivalent in the simpler version of the model discussed in the previous section, $(\text{b0})$ to $(\text{b3})$ are **Hebbian**, as they imply the values should be updated proportionally to the activity of the pre-synaptic and post-synaptic neurons. 
+The rules to update the covariance matrices $(\text{B1})$ and $(\text{B2})$ however, do not satisfy the constraints of **local plasticity** (in the current state). In fact, they contain the inverse of the matrices $\bf\Sigma^{-1}$, each value of which depends on the **entire matrix** rather than the **single $(i,j)$ element** which is encoded in the synapse. 
+It’ll be shown in a later section how the model can be extended to satisfy the constraint. 
+
+#### 4.2 Introducing Hierarchy
