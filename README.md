@@ -184,7 +184,7 @@ After inferring the most likely value of $\phi$: $\hat\phi$, given $u$ as the li
 Basically, the animal asks itself: 
 > “Given my best guess of $\phi$, how likely is it that my internal parameters would expect its light intensity to be the measured one, $u$?”. 
 
-Although $\hat{\phi}$ is the best estimate of the hidden causes of the sensory input $u$ given the current model parameters, the joint probability $p(u, \hat{\phi})$ might not be maximized **globally** because the parametersmay still be inaccurate or suboptimal. Our goal is in fact to adjust those parameters in order for $p(u,\hat\phi) = p(u\mid \phi)p(\phi)$ to be maximum. 
+Although $\hat{\phi}$ is the best estimate of the hidden causes of the sensory input $u$ given the current model parameters, the joint probability $p(u, \hat{\phi})$ might not be maximized **globally** because the parameters may still be inaccurate or suboptimal. Our goal is in fact to adjust those parameters in order for $p(u,\hat\phi) = p(u\mid \phi)p(\phi)$ to be maximum. 
 
 In the same way we adjusted our guess of $\phi$ proportionally to the gradient of $F$, the model parameters $v_p$, $\Sigma_p$ and $\Sigma_u$ can also be optimized by adjusting them proportionally to the gradient of $F$.
 In particular, we need the partial derivatives of $F$ over each one of them:
