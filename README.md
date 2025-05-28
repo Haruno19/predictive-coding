@@ -154,8 +154,8 @@ For example, the **rate of change** of node $\epsilon_p$ is:
 ```math
 \dot{\epsilon_p}=+1\times\phi-1\times v_p-\Sigma_p\epsilon_p \\
 ```
-Exactly equivalent to $(a_1)$. 
-The same is true for the rates of nodes $\phi$ and $\epsilon_u$, respectively $(a_0)$ and $(a_2)$. 
+Exactly equivalent to $(\text{a1})$. 
+The same is true for the rates of nodes $\phi$ and $\epsilon_u$, respectively $(\text{a0})$ and $(\text{a2})$. 
 *(Note: nodes $u$ and $1$ are **tonically active nodes**, so the value they hold doesn’t change over time, and therefore have no **rate of change**.)*
 
 To simulate the model described by this graph then, simply means to: $[1]$ initialize the variables and constants to the desired values, $[2]$ evaluate the three rates of change $\dot{\phi}$, $\dot{\epsilon_p}$ and $\dot{\epsilon_u}$ with the derived equations, and $[3]$ update the values of the relative variable nodes, $\phi$, $\epsilon_p$ and $\epsilon_u$ respectively, with Euler’s method as follows:
